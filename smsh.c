@@ -16,13 +16,13 @@ void changedir(char buffers);
 void history(FILE *historyLog);
 int main()
 {
-	int status, fd, files[2], amp, i = 1;
+	int status, fd, files[2], amp, n = 1; // n: history line number
 	char buffers[MAXCOM], *parsed[MAXLIST], *cwd;
 	pid_t retid;
 	FILE *historyLog = fopen("historyLog.txt", "a+");
 
 	// read command line until "end of file"
-	while (read(STDIN_FILENO, buffers, numberchars)) {
+	while (1) {
 		fprintf(stdout, "%s> ", getcwd(NULL, MAXCOM));
 
 		// parse command line
@@ -30,12 +30,16 @@ int main()
 		if (strcmp(buffers, "") == 0) // shell이 null로 입력되면 다시 입력 받는다.
 			continue;
 
-		fprintf(historyLog, "%d  %s\n", i, buffers); // shell을 입력하면 기록한다.
-		i++;
+		fprintf(historyLog, "%d  %s\n", n, buffers); // shell을 입력하면 기록한다.
+		n++;
 		rewind(historyLog); // 개방된 파일에서 파일 포인터의 위치를 0으로 설정한다.
 		
+		// built-in command cd, history, exit ... 등은 새로운 프로세스를 생성하지 않고 실행
 		if (strcmp(buffers, "exit") == 0) // 사용자가 exit을 입력하면 smsh를 종료한다.
 			exit(0);
+
+		if(strcmp(buffers, "history") == 0)
+			history(historyf);
 
 		if (buffers[strlen(buffers) - 1] == '&') // command line contains &
 			amp = 1;
@@ -53,7 +57,7 @@ int main()
 		
 		
 		/*
-		// built-in command cd, for, while ... 등은 새로운 프로세스를 생성하지 않고 실행
+		
 		
 		if (fork() == 0) { // child
 			if () {// redirect output
