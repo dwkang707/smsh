@@ -39,7 +39,7 @@ int main()
 			exit(0);
 
 		if(strcmp(buffers, "history") == 0)
-			history(historyf);
+			history(historyLog);
 
 		if (buffers[strlen(buffers) - 1] == '&') // command line contains &
 			amp = 1;
