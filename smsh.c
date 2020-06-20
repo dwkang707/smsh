@@ -13,10 +13,10 @@
 static char *token;
 
 void changedir(char buffers);
-
-int main(int argc, char const *argv[])
+void history(FILE *historyLog);
+int main()
 {
-	int status, fd, files[2], amp;
+	int status, fd, files[2], amp, i = 0;
 	char buffers[MAXCOM], *parsed[MAXLIST], *cwd;
 	pid_t retid;
 	FILE *historyLog = fopen("historyLog.txt", "a+");
@@ -30,7 +30,7 @@ int main(int argc, char const *argv[])
 		if (strcmp(buffers, "") == 0) // shell이 null로 입력되면 다시 입력 받는다.
 			continue;
 
-		fprintf(historyLog, "%s\n", buffers); // shell을 입력하면 기록한다.
+		fprintf(historyLog, "%s  %s\n", char(++i), buffers); // shell을 입력하면 기록한다.
 		rewind(historyLog); // 개방된 파일에서 파일 포인터의 위치를 0으로 설정한다.
 		
 		if (strcmp(buffers, "exit") == 0) // 사용자가 exit을 입력하면 smsh를 종료한다.
@@ -41,14 +41,14 @@ int main(int argc, char const *argv[])
 		else
 			amp = 0;
 
-
+/*
 		if (strncmp("cd", buffers, 2) == 0) {
 			cwd = getcwd(NULL, numberchars);
 			printf("Current directory: %s\n", cwd);
-			changeDir(buffers);
+			changedir(buffers);
 			continue;
 		}
-
+*/
 		
 		
 		/*
@@ -95,6 +95,7 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
+/*
 void changedir(char buffers) {
   //char *home;
   //home = getenv("HOME");
@@ -111,4 +112,13 @@ void changedir(char buffers) {
     cwd = getcwd(NULL, numberchars);
     chdir(parsed[1]);
     return;
+}
+*/
+void history(FILE *historyLog) {
+	char c;
+	rewind(historyLog);
+	int i = 1;
+	while((c = fgetc(historyLog)) != EOF) {
+        printf("%c", c);
+    }
 }
