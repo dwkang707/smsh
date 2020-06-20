@@ -30,7 +30,7 @@ int main()
 		if (strcmp(buffers, "") == 0) // shell이 null로 입력되면 다시 입력 받는다.
 			continue;
 
-		fprintf(historyLog, "%s  %s\n", char(i), buffers); // shell을 입력하면 기록한다.
+		fprintf(historyLog, "%d  %s\n", i, buffers); // shell을 입력하면 기록한다.
 		i++;
 		rewind(historyLog); // 개방된 파일에서 파일 포인터의 위치를 0으로 설정한다.
 		
