@@ -66,7 +66,7 @@ int main()
 		}
 
 		if (strcmp(command1[0], "cd") == 0) {
-			if (chdir[1])
+			if (chdir(command1[1]))
 				perror("No such file or directory");
 		}
 		else {
