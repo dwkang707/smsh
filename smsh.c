@@ -33,6 +33,11 @@ int main()
 
 	// read command line until "end of file"
 	while (1) {
+		int pipec = 0; // pipe 갯수
+		int semic = 0; // semicolon 갯수
+		int redirc = 0; // redirection 갯수
+		int redirkind = 0; // redirection 종류
+		amp = 0;
 		fprintf(stdout, "2017097229_shell> ");
 
 		// parse command line
