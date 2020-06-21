@@ -8,10 +8,10 @@
 #include <string.h>
 
 #define MAXCOM 1000 // max number of letters to be supported
-#define RIGHT		1
-#define RIGHTRIGHT	2
-#define RIGHTFORCE	3
-#define LEFT		4
+#define grater_than	1
+#define right_shift	2
+#define grater_than_pipe 3
+#define less_than	4
 #define PIPE		5
 #define SEMICOLON	6
 
@@ -23,12 +23,11 @@ int redirkind = 0; // redirection 종류
 void history(FILE *historyLog);
 int isredirect(char f);
 int amp_process(char *cl, int length);
-int parsecl(char *buf, int len, char pars[MAXCOM][MAXCOM]);
+int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]);
 
 int main()
 {
 	int fd, files[2], amp, n = 1; // n: history line number
-	
 	char buffers[MAXCOM];
 	FILE *historyLog = fopen("historyLog.txt", "a+");
 
@@ -37,7 +36,7 @@ int main()
 		fprintf(stdout, "2017097229_shell> ");
 
 		// parse command line
-		gets(buffers);
+		fgets(buffers, MAXCOM, stdin);
 		if (strcmp(buffers, "") == 0) // shell이 null로 입력되면 다시 입력 받는다.
 			continue;
 
@@ -47,7 +46,7 @@ int main()
 		
 		char command[MAXCOM][MAXCOM] = {};
 		amp = amp_process(buffers, strlen(buffers));
-		int commandn = parsecl(buffers, strlen(buffers), command);
+		int commandn = parse_command(buffers, strlen(buffers), command);
 		
 		// built-in command cd, history, exit ... 등은 새로운 프로세스를 생성하지 않고 실행
 		if (strncmp(buffers, "exit", 4) == 0) // 사용자가 exit을 입력하면 smsh를 종료한다.
@@ -147,7 +146,7 @@ void history(FILE *historyLog) {
 }
 
 int isredirect(char f){
-	if(f == RIGHT || f == RIGHTFORCE || f == RIGHTRIGHT || f == LEFT)
+	if(f == grater_than || f == grater_than_pipe || f == right_shift || f == less_than)
 		return 1;
 	return 0;
 }
@@ -162,7 +161,7 @@ int amp_process(char *command, int length){
 	return 0;
 }
 
-int parsecl(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
+int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
 	int comidx = 0, com = 0;
 	for (int i = 0; i < len; i++) {
 		if (buf[i] == ';') {
@@ -172,7 +171,7 @@ int parsecl(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
 			semic++;
 		}
 		else if (buf[i] == '<') {
-			pars[++comidx][0] = LEFT;
+			pars[++comidx][0] = less_than;
 			com = 0;
 			comidx++;
 			redirc++;
@@ -186,17 +185,17 @@ int parsecl(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
 		}
 		else if (buf[i] == '>') {
 			if (buf[i+1] == '>') {
-				pars[++comidx][0] = RIGHTRIGHT;
+				pars[++comidx][0] = right_shift;
 				i++;
 				redirkind = 3;
 			}
 			else if (buf[i+1] == '|') {
-				pars[++comidx][0] = RIGHTFORCE;
+				pars[++comidx][0] = grater_than_pipe;
 				i++;
 				redirkind = 4;
 			}
 			else {
-				pars[++comidx][0] = RIGHT;
+				pars[++comidx][0] = grater_than;
 				redirkind = 2;
 			}
 			com = 0;
