@@ -23,7 +23,7 @@ int redirkind = 0; // redirection 종류
 void history(FILE *historyLog);
 int isredirect(char f);
 int clincludeand(char *cl, int length);
-int parsecl(char *buf, int len, char pars[MAX_BUFFER][MAX_BUFFER]);
+int parsecl(char *buf, int len, char pars[MAXCOM][MAXCOM]);
 
 int main()
 {
@@ -58,7 +58,7 @@ int main()
 			continue;
 		}
 
-		char **command1 = (char **)malloc(sizeof(char *) * MAX_BUFFER);
+		char **command1 = (char **)malloc(sizeof(char *) * MAXCOM);
 		char *ptr = strtok(command[0], " ");
 		for(int i = 0; ptr != NULL; i++) {
 			command1[i] = ptr;
@@ -70,7 +70,7 @@ int main()
 				perror("No such file or directory");
 		}
 		else {
-			char **command2 = (char **)malloc(sizeof(char *) * MAX_BUFFER);
+			char **command2 = (char **)malloc(sizeof(char *) * MAXCOM);
 			ptr = strtok(command[2], " ");
 			for(int i = 0; ptr != NULL; i++) {
 				command2[i] = ptr;
@@ -147,7 +147,8 @@ void history(FILE *historyLog) {
 }
 
 int isredirect(char f){
-	if(f == RIGHT || f == RIGHTFORCE || f == RIGHTRIGHT || f == LEFT) return 1;
+	if(f == RIGHT || f == RIGHTFORCE || f == RIGHTRIGHT || f == LEFT)
+		return 1;
 	return 0;
 }
 
@@ -161,46 +162,46 @@ int clincludeand(char *cl, int length){
 	return 0;
 }
 
-int parsecl(char *buf, int len, char pars[MAX_BUFFER][MAX_BUFFER]) {
+int parsecl(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
 	int comidx = 0, com = 0;
 	for (int i = 0; i < len; i++) {
 		if (buf[i] == ';') {
 			pars[++comidx][0] = SEMICOLON;
 			com = 0;
 			comidx++;
-			seminum++;
+			semic++;
 		}
 		else if (buf[i] == '<') {
 			pars[++comidx][0] = LEFT;
 			com = 0;
 			comidx++;
-			redirnum++;
-			dirkind = 1;
+			redirc++;
+			redirkind = 1;
 		}
 		else if (buf[i] == '|') {
 			pars[++comidx][0] = PIPE;
 			com = 0;
 			comidx++;
-			pipenum++;
+			pipec++;
 		}
 		else if (buf[i] == '>') {
 			if (buf[i+1] == '>') {
 				pars[++comidx][0] = RIGHTRIGHT;
 				i++;
-				dirkind = 3;
+				redirkind = 3;
 			}
 			else if (buf[i+1] == '|') {
 				pars[++comidx][0] = RIGHTFORCE;
 				i++;
-				dirkind = 4;
+				redirkind = 4;
 			}
 			else {
 				pars[++comidx][0] = RIGHT;
-				dirkind = 2;
+				redirkind = 2;
 			}
 			com = 0;
 			comidx++;
-			redirnum++;
+			redirc++;
 		}
 		else {
 			if (com == 0 && buf[i] == ' ')
