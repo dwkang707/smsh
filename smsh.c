@@ -36,7 +36,7 @@ int main()
 		fprintf(stdout, "2017097229_shell> ");
 
 		// parse command line
-		fgets(buffers, MAXCOM, stdin);
+		fgets(buffers, sizeof(buffers), stdin);
 		if (strcmp(buffers, "") == 0) // shell이 null로 입력되면 다시 입력 받는다.
 			continue;
 
