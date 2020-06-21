@@ -82,7 +82,7 @@ int main()
 			}
 			
 			if (fork() == 0) {
-				if (redirkind){
+				if (redirkind) {
 					if(redirkind == 1){ // <
 						fd = open(command2[0], O_RDONLY, 0) ;
 						dup2(fd, STDIN_FILENO);
@@ -90,7 +90,7 @@ int main()
 						execvp(command1[0], command1);
 					}
 
-					if(redirkind == 2){ // >
+					if(redirkind == 2) { // >
 						fd = open(command2[0], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 						dup2(fd, STDOUT_FILENO);
 						close(fd);
@@ -98,14 +98,14 @@ int main()
 					/* stdout is now redirected */
 					}
 					
-					if(redirkind == 3){ // >>
+					if(redirkind == 3) { // >>
 						fd = open(command2[0], O_CREAT | O_WRONLY | O_APPEND, 0644);
 						dup2(fd, STDOUT_FILENO);
 						close(fd);
 						execvp(command1[0], command1);
 					}
 
-					if(redirkind == 4) {// >|
+					if(redirkind == 4) { // >|
 						fd = open(command2[0], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 						dup2(fd, STDOUT_FILENO);
 						close(fd);
@@ -166,44 +166,44 @@ int amp_process(char *command, int length){
 }
 
 int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
-	int comidx = 0, com = 0;
+	int idx = 0, com = 0;
 	for (int i = 0; i < len; i++) {
 		if (buf[i] == ';') {
-			pars[++comidx][0] = SEMICOLON;
+			pars[++idx][0] = SEMICOLON;
 			com = 0;
-			comidx++;
+			idx++;
 			semic++;
 		}
 		else if (buf[i] == '<') {
-			pars[++comidx][0] = less_than;
+			pars[++idx][0] = less_than;
 			com = 0;
-			comidx++;
+			idx++;
 			redirc++;
 			redirkind = 1;
 		}
 		else if (buf[i] == '|') {
-			pars[++comidx][0] = PIPE;
+			pars[++idx][0] = PIPE;
 			com = 0;
-			comidx++;
+			idx++;
 			pipec++;
 		}
 		else if (buf[i] == '>') {
 			if (buf[i + 1] == '>') {
-				pars[++comidx][0] = right_shift;
+				pars[++idx][0] = right_shift;
 				i++;
 				redirkind = 3;
 			}
 			else if (buf[i + 1] == '|') {
-				pars[++comidx][0] = grater_than_pipe;
+				pars[++idx][0] = grater_than_pipe;
 				i++;
 				redirkind = 4;
 			}
 			else {
-				pars[++comidx][0] = grater_than;
+				pars[++idx][0] = grater_than;
 				redirkind = 2;
 			}
 			com = 0;
-			comidx++;
+			idx++;
 			redirc++;
 		}
 		else {
@@ -213,8 +213,8 @@ int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
 				continue;			
 			if(i == len - 1 && buf[i] == ' ')
 				continue;
-			pars[comidx][com++] = buf[i];
+			pars[idx][com++] = buf[i];
 		}
 	}
-	return comidx;
+	return idx;
 }
