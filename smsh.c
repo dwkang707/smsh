@@ -160,35 +160,35 @@ int amp_process(char *command, int length){
 	return 0;
 }
 
-int parse_command(char *buffers, int len, char pars[MAXCOM][MAXCOM]) {
+int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
 	int comidx = 0, com = 0;
 	for (int i = 0; i < len; i++) {
-		if (buffers[i] == ';') {
+		if (buf[i] == ';') {
 			pars[++comidx][0] = SEMICOLON;
 			com = 0;
 			comidx++;
 			semic++;
 		}
-		else if (buffers[i] == '<') {
+		else if (buf[i] == '<') {
 			pars[++comidx][0] = less_than;
 			com = 0;
 			comidx++;
 			redirc++;
 			redirkind = 1;
 		}
-		else if (buffers[i] == '|') {
+		else if (buf[i] == '|') {
 			pars[++comidx][0] = PIPE;
 			com = 0;
 			comidx++;
 			pipec++;
 		}
-		else if (buffers[i] == '>') {
-			if (buffers[i + 1] == '>') {
+		else if (buf[i] == '>') {
+			if (buf[i + 1] == '>') {
 				pars[++comidx][0] = right_shift;
 				i++;
 				redirkind = 3;
 			}
-			else if (buffers[i + 1] == '|') {
+			else if (buf[i + 1] == '|') {
 				pars[++comidx][0] = grater_than_pipe;
 				i++;
 				redirkind = 4;
@@ -202,13 +202,13 @@ int parse_command(char *buffers, int len, char pars[MAXCOM][MAXCOM]) {
 			redirc++;
 		}
 		else {
-			if (com == 0 && buffers[i] == ' ')
+			if (com == 0 && buf[i] == ' ')
 				continue;
-			if (buffers[i] == ' ' && (buffers[i + 1] == ';' || buffers[i + 1] == '<' || buffers[i + 1] == '|' || buffers[i + 1] == '>'))
+			if (buf[i] == ' ' && (buf[i + 1] == ';' || buf[i + 1] == '<' || buf[i + 1] == '|' || buf[i + 1] == '>'))
 				continue;			
-			if(i == len - 1 && buffers[i] == ' ')
+			if(i == len - 1 && buf[i] == ' ')
 				continue;
-			pars[comidx][com++] = buffers[i];
+			pars[comidx][com++] = buf[i];
 		}
 	}
 	return comidx;
