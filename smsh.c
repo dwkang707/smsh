@@ -6,24 +6,35 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
-#define MAXCOM 1000 // max number of letters to be supported 
-#define numberchars 100 // byte
-#define MAXLIST 100 // max number of commands to be supported
 
-static char *token;
+#define MAXCOM 1000 // max number of letters to be supported
+#define RIGHT		1
+#define RIGHTRIGHT	2
+#define RIGHTFORCE	3
+#define LEFT		4
+#define PIPE		5
+#define SEMICOLON	6
 
-void changedir(char buffers);
+int pipec = 0; // pipe 갯수
+int semic = 0; // semicolon 갯수
+int redirc = 0; // redirection 갯수
+int redirkind = 0; // redirection 종류
+
 void history(FILE *historyLog);
+int isredirect(char f);
+int clincludeand(char *cl, int length);
+int parsecl(char *buf, int len, char pars[MAX_BUFFER][MAX_BUFFER]);
+
 int main()
 {
-	int status, fd, files[2], amp, n = 1; // n: history line number
-	char buffers[MAXCOM], *parsed[MAXLIST], *cwd;
-	pid_t retid;
+	int fd, files[2], amp = 0, n = 1; // n: history line number
+	
+	char buffers[MAXCOM];
 	FILE *historyLog = fopen("historyLog.txt", "a+");
 
 	// read command line until "end of file"
 	while (1) {
-		fprintf(stdout, "%s> ", getcwd(NULL, MAXCOM));
+		fprintf(stdout, "2017097229_shell> ");
 
 		// parse command line
 		gets(buffers);
@@ -34,91 +45,98 @@ int main()
 		n++;
 		rewind(historyLog); // 개방된 파일에서 파일 포인터의 위치를 0으로 설정한다.
 		
+		char command[MAXCOM][MAXCOM] = {};
+		amp = clincludeand(buffers, strlen(buffers));
+		int commandn = parsecl(buffers, strlen(buffers), command);
+		
 		// built-in command cd, history, exit ... 등은 새로운 프로세스를 생성하지 않고 실행
 		if (strcmp(buffers, "exit") == 0) // 사용자가 exit을 입력하면 smsh를 종료한다.
 			exit(0);
 
-		if(strcmp(buffers, "history") == 0)
+		if(strcmp(buffers, "history") == 0) {
 			history(historyLog);
-
-		if (buffers[strlen(buffers) - 1] == '&') // command line contains &
-			amp = 1;
-		else
-			amp = 0;
-
-/*
-		if (strncmp("cd", buffers, 2) == 0) {
-			cwd = getcwd(NULL, numberchars);
-			printf("Current directory: %s\n", cwd);
-			changedir(buffers);
 			continue;
 		}
-*/
-		
-		
-		/*
-		
-		
-		if (fork() == 0) { // child
-			if () {// redirect output
-				fd = creat(newfile, fmask);
-				close(stdout);
-				dup(fd);
-				close(fd);
-				// stdout is now redirected
-			}
 
-			if (pipe(files) == 0) {
-				pipe(files);
-				if (fork() == 0) {
-					// first commponent of command line
-					close(stdout);
-					dup(files[1]);
-					close(files[1]);
-					close(files[0]);
-					// stdout now goes to pipe
-					// child process does command1
-					execlp(command1, command1, 0);
+		char **command1 = (char **)malloc(sizeof(char *) * MAX_BUFFER);
+		char *ptr = strtok(command[0], " ");
+		for(int i = 0; ptr != NULL; i++) {
+			command1[i] = ptr;
+			ptr = strtok(NULL, " ");
+		}
+
+		if (strcmp(command1[0], "cd") == 0) {
+			if (chdir[1])
+				perror("No such file or directory");
+		}
+		else {
+			char **command2 = (char **)malloc(sizeof(char *) * MAX_BUFFER);
+			ptr = strtok(command[2], " ");
+			for(int i = 0; ptr != NULL; i++) {
+				command2[i] = ptr;
+				ptr = strtok(NULL, " ");
+			}
+			
+			if (fork() == 0) {
+				if (redirkind){
+					if(redirkind == 1){ // <
+						fd = open(command2[0], O_RDONLY, 0) ;
+						dup2(fd, STDIN_FILENO);
+						close(fd);
+						execvp(command1[0], command1);
+					}
+
+					if(redirkind == 2){ // >
+						fd = open(command2[0], O_CREAT | O_WRONLY | O_TRUNC, 0644);
+						dup2(fd, STDOUT_FILENO);
+						close(fd);
+						execvp(command1[0], command1);
+					/* stdout is now redirected */
+					}
+					
+					if(redirkind == 3){ // >>
+						fd = open(command2[0], O_CREAT | O_WRONLY | O_APPEND, 0644);
+						dup2(fd, STDOUT_FILENO);
+						close(fd);
+						execvp(command1[0], command1);
+					}
+
+					if(redirkind == 4) {// >|
+						fd = open(command2[0], O_CREAT | O_WRONLY | O_TRUNC, 0644);
+						dup2(fd, STDOUT_FILENO);
+						close(fd);
+						execvp(command1[0], command1);
+					}
 				}
-				close(stdin);
-				dup(files[0]);
-				close(files[0]);
-				close(files[1]);
-				// stdin now comes from pipe
-			}
-			execve(command2, command2, 0);
-		}
-		// parent continues over here, wait for child to exit if required
 
-		if (amp == 0)
-			retid = wait(&status);
-		else
-			continue;
-			*/
+				if (pipec) {
+					pipe(files);
+					if (fork() == 0) {
+						/* first component of command line */
+						dup2(files[1], STDOUT_FILENO);
+						close(files[1]);
+						close(files[0]); 
+						/* stdout now goes to pipe */
+						/* child process does command1 */
+						execvp(command1[0], command1);
+					}
+					/* 2nd command of command line */
+					dup2(files[0], STDIN_FILENO);
+					close(files[0]);
+					close(files[1]);
+					/* stdin now comes from pipe */
+					execvp(command2[0], command2);
+				}
+				execvp(command1[0], command1);
+			}
+			if (amp == 0)
+				wait(NULL);	
+		}
 	} // end of while loop
 	fclose(historyLog);
 	return 0;
 }
 
-/*
-void changedir(char buffers) {
-  //char *home;
-  //home = getenv("HOME");
-	char *parsed[MAXLIST], *cwd;
-
-	for (int i = 0; i < MAXLIST; i++) { 
-        parsed[i] = strsep(buffers, " "); 
-  
-        if (parsed[i] == NULL) 
-            break; 
-        if (strlen(parsed[i]) == 0) 
-            i--; 
-    }
-    cwd = getcwd(NULL, numberchars);
-    chdir(parsed[1]);
-    return;
-}
-*/
 void history(FILE *historyLog) {
 	char c;
 	rewind(historyLog);
@@ -126,4 +144,73 @@ void history(FILE *historyLog) {
 	while((c = fgetc(historyLog)) != EOF) {
         printf("%c", c);
     }
+}
+
+int isredirect(char f){
+	if(f == RIGHT || f == RIGHTFORCE || f == RIGHTRIGHT || f == LEFT) return 1;
+	return 0;
+}
+
+int clincludeand(char *cl, int length){
+	for(int i = 0; i < length; i++){
+		if(cl[i] == '&') {
+			cl[i] = '\0';
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int parsecl(char *buf, int len, char pars[MAX_BUFFER][MAX_BUFFER]) {
+	int comidx = 0, com = 0;
+	for (int i = 0; i < len; i++) {
+		if (buf[i] == ';') {
+			pars[++comidx][0] = SEMICOLON;
+			com = 0;
+			comidx++;
+			seminum++;
+		}
+		else if (buf[i] == '<') {
+			pars[++comidx][0] = LEFT;
+			com = 0;
+			comidx++;
+			redirnum++;
+			dirkind = 1;
+		}
+		else if (buf[i] == '|') {
+			pars[++comidx][0] = PIPE;
+			com = 0;
+			comidx++;
+			pipenum++;
+		}
+		else if (buf[i] == '>') {
+			if (buf[i+1] == '>') {
+				pars[++comidx][0] = RIGHTRIGHT;
+				i++;
+				dirkind = 3;
+			}
+			else if (buf[i+1] == '|') {
+				pars[++comidx][0] = RIGHTFORCE;
+				i++;
+				dirkind = 4;
+			}
+			else {
+				pars[++comidx][0] = RIGHT;
+				dirkind = 2;
+			}
+			com = 0;
+			comidx++;
+			redirnum++;
+		}
+		else {
+			if (com == 0 && buf[i] == ' ')
+				continue;
+			if (buf[i] == ' ' && (buf[i+1] == ';' || buf[i+1] == '<' || buf[i+1] == '|' || buf[i+1] == '>'))
+				continue;			
+			if(i == len-1 && buf[i] == ' ')
+				continue;
+			pars[comidx][com++] = buf[i];
+		}
+	}
+	return comidx;
 }
