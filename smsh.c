@@ -20,10 +20,10 @@ int semic = 0; // semicolon 갯수
 int redirc = 0; // redirection 갯수
 int redirkind = 0; // redirection 종류
 
-void history(FILE *historyLog);
-int isredirect(char f);
-int amp_process(char *cl, int length);
-int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]);
+void history(FILE *historyLog); // history 기능 함수
+int redir_process(char f); // redirection 처리 기능 함수
+int amp_process(char *cl, int length); // & 처리 기능 함수
+int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]); // command 처리 기능 함수
 
 int main()
 {
@@ -58,8 +58,8 @@ int main()
 		}
 
 		char **command1 = (char **)malloc(sizeof(char *) * MAXCOM);
-		char *ptr = strtok(command[0], " ");
-		for(int i = 0; ptr != NULL; i++) {
+		char *ptr = strtok(command[0], " "); // 공백을 기준으로 문자열 쪼개기
+		for (int i = 0; ptr != NULL; i++) {
 			command1[i] = ptr;
 			ptr = strtok(NULL, " ");
 		}
@@ -139,13 +139,12 @@ int main()
 void history(FILE *historyLog) {
 	char c;
 	rewind(historyLog);
-	int i = 1;
 	while((c = fgetc(historyLog)) != EOF) {
         printf("%c", c);
     }
 }
 
-int isredirect(char f){
+int redir_process(char f){
 	if(f == grater_than || f == grater_than_pipe || f == right_shift || f == less_than)
 		return 1;
 	return 0;
@@ -161,35 +160,35 @@ int amp_process(char *command, int length){
 	return 0;
 }
 
-int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
+int parse_command(char *buffers, int len, char pars[MAXCOM][MAXCOM]) {
 	int comidx = 0, com = 0;
 	for (int i = 0; i < len; i++) {
-		if (buf[i] == ';') {
+		if (buffers[i] == ';') {
 			pars[++comidx][0] = SEMICOLON;
 			com = 0;
 			comidx++;
 			semic++;
 		}
-		else if (buf[i] == '<') {
+		else if (buffers[i] == '<') {
 			pars[++comidx][0] = less_than;
 			com = 0;
 			comidx++;
 			redirc++;
 			redirkind = 1;
 		}
-		else if (buf[i] == '|') {
+		else if (buffers[i] == '|') {
 			pars[++comidx][0] = PIPE;
 			com = 0;
 			comidx++;
 			pipec++;
 		}
-		else if (buf[i] == '>') {
-			if (buf[i+1] == '>') {
+		else if (buffers[i] == '>') {
+			if (buffers[i + 1] == '>') {
 				pars[++comidx][0] = right_shift;
 				i++;
 				redirkind = 3;
 			}
-			else if (buf[i+1] == '|') {
+			else if (buffers[i + 1] == '|') {
 				pars[++comidx][0] = grater_than_pipe;
 				i++;
 				redirkind = 4;
@@ -203,13 +202,13 @@ int parse_command(char *buf, int len, char pars[MAXCOM][MAXCOM]) {
 			redirc++;
 		}
 		else {
-			if (com == 0 && buf[i] == ' ')
+			if (com == 0 && buffers[i] == ' ')
 				continue;
-			if (buf[i] == ' ' && (buf[i+1] == ';' || buf[i+1] == '<' || buf[i+1] == '|' || buf[i+1] == '>'))
+			if (buffers[i] == ' ' && (buffers[i + 1] == ';' || buffers[i + 1] == '<' || buffers[i + 1] == '|' || buffers[i + 1] == '>'))
 				continue;			
-			if(i == len-1 && buf[i] == ' ')
+			if(i == len - 1 && buffers[i] == ' ')
 				continue;
-			pars[comidx][com++] = buf[i];
+			pars[comidx][com++] = buffers[i];
 		}
 	}
 	return comidx;
