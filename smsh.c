@@ -22,12 +22,12 @@ int redirkind = 0; // redirection 종류
 
 void history(FILE *historyLog);
 int isredirect(char f);
-int clincludeand(char *cl, int length);
+int amp_process(char *cl, int length);
 int parsecl(char *buf, int len, char pars[MAXCOM][MAXCOM]);
 
 int main()
 {
-	int fd, files[2], amp = 0, n = 1; // n: history line number
+	int fd, files[2], amp, n = 1; // n: history line number
 	
 	char buffers[MAXCOM];
 	FILE *historyLog = fopen("historyLog.txt", "a+");
@@ -46,11 +46,11 @@ int main()
 		rewind(historyLog); // 개방된 파일에서 파일 포인터의 위치를 0으로 설정한다.
 		
 		char command[MAXCOM][MAXCOM] = {};
-		amp = clincludeand(buffers, strlen(buffers));
+		amp = amp_process(buffers, strlen(buffers));
 		int commandn = parsecl(buffers, strlen(buffers), command);
 		
 		// built-in command cd, history, exit ... 등은 새로운 프로세스를 생성하지 않고 실행
-		if (strcmp(buffers, "exit") == 0) // 사용자가 exit을 입력하면 smsh를 종료한다.
+		if (strncmp(buffers, "exit", 4) == 0) // 사용자가 exit을 입력하면 smsh를 종료한다.
 			exit(0);
 
 		if(strcmp(buffers, "history") == 0) {
@@ -152,10 +152,10 @@ int isredirect(char f){
 	return 0;
 }
 
-int clincludeand(char *cl, int length){
-	for(int i = 0; i < length; i++){
-		if(cl[i] == '&') {
-			cl[i] = '\0';
+int amp_process(char *command, int length){
+	for (int i = 0; i < length; i++) {
+		if (command[i] == '&') {
+			command[i] = '\0';
 			return 1;
 		}
 	}
